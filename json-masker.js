@@ -5,6 +5,7 @@ if (process.argv.length < 4) {
     return;
 }
 
+let is_fill_empty_key = false;
 let is_multiline_json = false;
 let tab = null;
 
@@ -14,6 +15,10 @@ while (index < process.argv.length) {
     switch (param) {
         case '-m': {
             is_multiline_json = true;
+            break;
+        }
+        case '-s': {
+            is_fill_empty_key = true;
             break;
         }
         case '-t': {
@@ -89,7 +94,9 @@ function replace_marked(node, marked) {
         for (let key in node) {
             if (node.hasOwnProperty(key)) {
                 if (marked.indexOf(key) >= 0) {
-                    node[key] = MASK_VALUE;
+                    if (is_fill_empty_key || node[key] !== '') {
+                        node[key] = MASK_VALUE;
+                    }
                 } else {
                     replace_marked(node[key], marked);
                 }
