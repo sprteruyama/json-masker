@@ -52,6 +52,7 @@ let fs = require('fs');
 let data = null;
 try {
     data = fs.readFileSync(source_filename, 'utf8');
+    data = data.replace(/NumberInt\((\d+)\)/gi, '$1');
 } catch (e) {
     //nothing
 }
