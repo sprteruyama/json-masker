@@ -31,7 +31,7 @@ if (matched) {
     tab = matched[1];
 }
 try {
-    var data = JSON.parse(json);
+    data = JSON.parse(json);
 } catch (e) {
     data = null;
 }
