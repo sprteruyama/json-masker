@@ -5,16 +5,37 @@ if (process.argv.length < 4) {
     return;
 }
 
-var is_multiline_json = false;
+let is_multiline_json = false;
+let tab = null;
 
-for (var index in process.argv) {
-    if (process.argv[index] === '-m') {
-        is_multiline_json = true;
-        process.argv.splice(index, 1)
+let index = 2;
+while (index < process.argv.length) {
+    let param = process.argv[index];
+    switch (param) {
+        case '-m': {
+            is_multiline_json = true;
+            break;
+        }
+        case '-t': {
+            try {
+                tab = ' '.repeat(process.argv[index + 1]);
+                process.argv.splice(index + 1, 1);
+            } catch (e) {
+                console.log('ERROR: -t option must have a more parameter.');
+                return;
+            }
+            break;
+        }
     }
+    if (param.indexOf('-') === 0) {
+        process.argv.splice(index, 1)
+    } else {
+        index++;
+    }
+
 }
 
-var source_filename = process.argv[2];
+let source_filename = process.argv[2];
 if (source_filename.indexOf('/') !== 0) {
     source_filename = process.cwd() + '/' + process.argv[2];
 }
@@ -22,10 +43,8 @@ if (!source_filename.match(/\.[^.]+$/)) {
     source_filename += '.json';
 }
 
-var fs = require('fs');
-data = null;
-tab = '';
-var data = null;
+let fs = require('fs');
+let data = null;
 try {
     data = fs.readFileSync(source_filename, 'utf8');
 } catch (e) {
@@ -35,18 +54,20 @@ if (data === null) {
     console.log('[ERROR]no such file.: ' + source_filename);
     return;
 }
-var jsons = [];
+let jsons = [];
 if (is_multiline_json) {
     jsons = data.split('\n');
 } else {
     jsons = [data];
 }
-for (var json_index in jsons) {
-    var json = jsons[json_index].trim();
-    if(json){
-        var matched = json.match(/\n([\t ]+?)[^\t ]/);
-        if (matched) {
-            tab = matched[1];
+for (let json_index in jsons) {
+    let json = jsons[json_index].trim();
+    if (json) {
+        if (tab == null) {
+            let matched = json.match(/\n([\t ]+?)[^\t ]/);
+            if (matched) {
+                tab = matched[1];
+            }
         }
         try {
             data = JSON.parse(json);
@@ -57,20 +78,20 @@ for (var json_index in jsons) {
             console.log('ERROR: json format is invalid.');
             return;
         }
-        var marked = process.argv.slice(3, process.argv.length);
-        replace_marked(data);
+        let marked = process.argv.slice(3, process.argv.length);
+        replace_marked(data, marked);
         console.log(JSON.stringify(data, null, tab));
     }
 }
 
-function replace_marked(node) {
+function replace_marked(node, marked) {
     if (node !== null && typeof node === "object") {
-        for (var key in node) {
+        for (let key in node) {
             if (node.hasOwnProperty(key)) {
                 if (marked.indexOf(key) >= 0) {
                     node[key] = MASK_VALUE;
                 } else {
-                    replace_marked(node[key]);
+                    replace_marked(node[key], marked);
                 }
             }
         }
