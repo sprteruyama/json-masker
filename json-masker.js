@@ -31,7 +31,7 @@ try {
 } catch (e) {
     //nothing
 }
-if (json === null) {
+if (data === null) {
     console.log('[ERROR]no such file.: ' + source_filename);
     return;
 }
@@ -43,36 +43,36 @@ if (is_multiline_json) {
 }
 for (var json_index in jsons) {
     var json = jsons[json_index].trim();
-    var matched = json.match(/\n([\t ]+?)[^\t ]/);
-    if (matched) {
-        tab = matched[1];
+    if(json){
+        var matched = json.match(/\n([\t ]+?)[^\t ]/);
+        if (matched) {
+            tab = matched[1];
+        }
+        try {
+            data = JSON.parse(json);
+        } catch (e) {
+            data = null;
+        }
+        if (data === null) {
+            console.log('ERROR: json format is invalid.');
+            return;
+        }
+        var marked = process.argv.slice(3, process.argv.length);
+        replace_marked(data);
+        console.log(JSON.stringify(data, null, tab));
     }
-    try {
-        data = JSON.parse(json);
-    } catch (e) {
-        data = null;
-    }
-    if (data === null) {
-        console.log('ERROR: json format is invalid.');
-        return;
-    }
-    var marked = process.argv.slice(3, process.argv.length);
+}
 
-    function replace_marked(node) {
-        if (node !== null && typeof node === "object") {
-            for (var key in node) {
-                if (node.hasOwnProperty(key)) {
-                    if (marked.indexOf(key) >= 0) {
-                        node[key] = MASK_VALUE;
-                    } else {
-                        replace_marked(node[key]);
-                    }
+function replace_marked(node) {
+    if (node !== null && typeof node === "object") {
+        for (var key in node) {
+            if (node.hasOwnProperty(key)) {
+                if (marked.indexOf(key) >= 0) {
+                    node[key] = MASK_VALUE;
+                } else {
+                    replace_marked(node[key]);
                 }
             }
         }
     }
-
-    replace_marked(data);
-
-    console.log(JSON.stringify(data, null, tab));
 }
